@@ -6,6 +6,7 @@ trigger CTPersonTrigger on Person__c (before insert,after insert, after update, 
             for (Person__c person_record: Trigger.New){
                 person_record.Health_Status__c = 'Green';
                 person_record.Token__c = CTPersonContoller.getToken(person_record.Mobile__c);
+                //Nice update
             }
         }
         when AFTER_INSERT{
