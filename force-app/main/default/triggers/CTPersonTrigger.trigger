@@ -3,6 +3,7 @@ trigger CTPersonTrigger on Person__c (before insert,after insert, after update, 
 
     switch on Trigger.operationType {
         when BEFORE_INSERT {
+            // todo: update health status to 'Green' and generate unique token for the person record.
             for (Person__c person_record: Trigger.New){
                 person_record.Health_Status__c = 'Green';
                 person_record.Token__c = CTPersonContoller.getToken(person_record.Mobile__c);
