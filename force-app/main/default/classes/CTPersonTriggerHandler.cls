@@ -8,6 +8,7 @@ public with sharing class CTPersonTriggerHandler {
             //Update health status to 'Green' and generate unique token for the person record.
             person_record.Health_Status__c = 'Green';
             person_record.Token__c = CTPersonContoller.getToken(person_record.Mobile__c);
+            //Token is created successfully
         }
     }
     
