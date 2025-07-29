@@ -19,4 +19,32 @@ public with sharing class CTPersonTriggerHandler {
             }
         }
     }
+    public static void afterUpdate(List<Person__c> newRecords, Map<Id, Person__c> oldRecordMaps){
+        Set<Id> statusChange = new Set<Id>();
+        Set<Id> redStatus = new Set<Id>();
+        for (Person__c person_record: newRecords){
+
+            if(oldRecordMaps.get(person_record.Id).Health_Status__c != person_record.Health_Status__c){
+                statusChange.add(person_record.Id);
+            }
+            if(oldRecordMaps.get(person_record.Id).Health_Status__c != 'Red' &&person_record.Health_Status__c == 'Red'){
+                redStatus.add(person_record.Id);
+            }
+            
+        }
+        Set<Id> orangeStatus = new Set<Id>();
+        Set<Id> yellowStatus = new Set<Id>();
+
+        // Lets add cohabitants
+        orangeStatus.addAll(CTPersonContoller.getCohibitants(redStatus));
+
+        //lets add neighbours
+        yellowStatus.addAll(CTPersonContoller.getNeigbhours(redStatus));
+
+        // Lets add primary contacts
+        Set<Id> primaryContacts = CTPersonContoller.getPrimaryContacts(redStatus);
+
+        //lets add Secondary contacts
+        yellowStatus.addAll(CTPersonContoller.getSecondaryContacts(primaryContacts));
+    }
 }

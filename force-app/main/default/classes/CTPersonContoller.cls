@@ -29,7 +29,7 @@ public with sharing class CTPersonContoller {
         return person;
     }
     
-    public static Set<Id> getCohibitants(String personId){
+    public static Set<Id> getCohibitants(Set<Id> personId){
         Set<Id> cohibitantIds = new Set<Id>();
         List<String> healthStatuses = new List<String>{'Green', 'Yellow'};
         // Fetch Cohibitant__c records related to the given Person__c record
@@ -49,7 +49,7 @@ public with sharing class CTPersonContoller {
         }
         return cohibitantIds;
     }
-    public static Set<Id> getNeigbhours(String personId){
+    public static Set<Id> getNeigbhours(Set<Id> personId){
         Set<Id> neigbourIds = new Set<Id>();
         
         // Fetch Cohibitant__c records related to the given Person__c record
@@ -63,10 +63,56 @@ public with sharing class CTPersonContoller {
             if(!personId.contains(pt.Person_1__c)){
                 neigbourIds.add(pt.Person_1__c);
             }
-            if(!personId.contains(pt.person_2__Fc)){
+            if(!personId.contains(pt.Person_2__c)){
                 neigbourIds.add(pt.Person_2__c);
             }
         }
         return neigbourIds;
     }
+    
+    public static Set<Id> getPrimaryContacts(Set<Id> personId){
+        Set<Id> primaryContactsId = new Set<Id>();
+        List<String> healthStatuses = new List<String>{'Green', 'Yellow'};
+        // Fetch Cohibitant__c records related to the given Person__c record
+        List<People_Tracing__c> peopleTraces = [SELECT Contact_Type__c, Id, Person_1__c, Person_2__c, Name 
+                                                FROM People_Tracing__c  
+                                                WHERE Contact_Type__c = 'Other'
+                                                AND Contact_Date__c = LAST_N_DAYS:10
+                                                AND (Person_1__c = :personId OR Person_2__c = :personId)
+                                                AND (Person_1__r.Health_Status__c IN :healthStatuses 
+                                                OR Person_2__r.Health_Status__c IN :healthStatuses)];
+        for (People_Tracing__c pt : peopleTraces) {
+            if(!personId.contains(pt.Person_1__c)){
+                primaryContactsId.add(pt.Person_1__c);
+            }
+            if(!personId.contains(pt.person_2__c)){
+                primaryContactsId.add(pt.Person_2__c);
+            }
+        }
+        return primaryContactsId;
+    }
+    
+    public static Set<Id> getSecondaryContacts(Set<Id> primaryContactIds){
+        Set<Id> secondaryContacts = new Set<Id>();
+        
+        // Fetch Cohibitant__c records related to the given Person__c record
+        List<People_Tracing__c> peopleTraces = [SELECT Contact_Type__c, Id, Person_1__c, Person_2__c, Name 
+                                                FROM People_Tracing__c  
+                                                WHERE Contact_Type__c = 'Other'
+                                                AND Contact_Date__c = LAST_N_DAYS:10
+                                                AND (Person_1__c = :primaryContactIds OR Person_2__c = :primaryContactIds)
+                                                AND (Person_1__r.Health_Status__c = 'Green'
+                                                OR Person_2__r.Health_Status__c = 'Green')];
+        for (People_Tracing__c pt : peopleTraces) {
+            if(!primaryContactIds.contains(pt.Person_1__c)){
+                secondaryContacts.add(pt.Person_1__c);
+            }
+            if(!primaryContactIds.contains(pt.Person_2__c)){
+                secondaryContacts.add(pt.Person_2__c);
+            }
+        }
+        return secondaryContacts;
+    }
+    
+
 }
