@@ -29,7 +29,7 @@ public with sharing class CTPersonContoller {
         return person;
     }
     
-    public static Set<Id> getCohibitants(Set<Id> personId){
+    public static Set<Id> getCohibitants(Set<Id> personId,Set<Id> alreadyProcessed){
         Set<Id> cohibitantIds = new Set<Id>();
         List<String> healthStatuses = new List<String>{'Green', 'Yellow'};
         // Fetch Cohibitant__c records related to the given Person__c record
@@ -40,16 +40,18 @@ public with sharing class CTPersonContoller {
                                                 AND (Person_1__r.Health_Status__c IN :healthStatuses 
                                                 OR Person_2__r.Health_Status__c IN :healthStatuses)];
         for (People_Tracing__c pt : peopleTraces) {
-            if(!personId.contains(pt.Person_1__c)){
+            if(!alreadyProcessed.contains(pt.Person_1__c)){
                 cohibitantIds.add(pt.Person_1__c);
+                alreadyProcessed.add(pt.Person_1__c);
             }
-            if(!personId.contains(pt.person_2__c)){
+            if(!alreadyProcessed.contains(pt.Person_2__c)){
                 cohibitantIds.add(pt.Person_2__c);
+                alreadyProcessed.add(pt.Person_2__c);
             }
         }
         return cohibitantIds;
     }
-    public static Set<Id> getNeigbhours(Set<Id> personId){
+    public static Set<Id> getNeigbhours(Set<Id> personId,Set<Id> alreadyProcessed){
         Set<Id> neigbourIds = new Set<Id>();
         
         // Fetch Cohibitant__c records related to the given Person__c record
@@ -60,17 +62,19 @@ public with sharing class CTPersonContoller {
                                                 AND (Person_1__r.Health_Status__c = 'Green'
                                                 OR Person_2__r.Health_Status__c = 'Green')];
         for (People_Tracing__c pt : peopleTraces) {
-            if(!personId.contains(pt.Person_1__c)){
+            if(!alreadyProcessed.contains(pt.Person_1__c)){
                 neigbourIds.add(pt.Person_1__c);
+                alreadyProcessed.add(pt.Person_1__c);
             }
-            if(!personId.contains(pt.Person_2__c)){
+            if(!alreadyProcessed.contains(pt.Person_2__c)){
                 neigbourIds.add(pt.Person_2__c);
+                alreadyProcessed.add(pt.Person_2__c);
             }
         }
         return neigbourIds;
     }
     
-    public static Set<Id> getPrimaryContacts(Set<Id> personId){
+    public static Set<Id> getPrimaryContacts(Set<Id> personId,Set<Id> alreadyProcessed){
         Set<Id> primaryContactsId = new Set<Id>();
         List<String> healthStatuses = new List<String>{'Green', 'Yellow'};
         // Fetch Cohibitant__c records related to the given Person__c record
@@ -82,17 +86,19 @@ public with sharing class CTPersonContoller {
                                                 AND (Person_1__r.Health_Status__c IN :healthStatuses 
                                                 OR Person_2__r.Health_Status__c IN :healthStatuses)];
         for (People_Tracing__c pt : peopleTraces) {
-            if(!personId.contains(pt.Person_1__c)){
+            if(!alreadyProcessed.contains(pt.Person_1__c)){
                 primaryContactsId.add(pt.Person_1__c);
+                alreadyProcessed.add(pt.Person_1__c);
             }
-            if(!personId.contains(pt.person_2__c)){
+            if(!alreadyProcessed.contains(pt.person_2__c)){
                 primaryContactsId.add(pt.Person_2__c);
+                alreadyProcessed.add(pt.Person_2__c);
             }
         }
         return primaryContactsId;
     }
     
-    public static Set<Id> getSecondaryContacts(Set<Id> primaryContactIds){
+    public static Set<Id> getSecondaryContacts(Set<Id> primaryContactIds,Set<Id> alreadyProcessed){
         Set<Id> secondaryContacts = new Set<Id>();
         
         // Fetch Cohibitant__c records related to the given Person__c record
@@ -104,11 +110,13 @@ public with sharing class CTPersonContoller {
                                                 AND (Person_1__r.Health_Status__c = 'Green'
                                                 OR Person_2__r.Health_Status__c = 'Green')];
         for (People_Tracing__c pt : peopleTraces) {
-            if(!primaryContactIds.contains(pt.Person_1__c)){
+            if(!alreadyProcessed.contains(pt.Person_1__c)){
                 secondaryContacts.add(pt.Person_1__c);
+                alreadyProcessed.add(pt.Person_1__c);
             }
-            if(!primaryContactIds.contains(pt.Person_2__c)){
+            if(!alreadyProcessed.contains(pt.Person_2__c)){
                 secondaryContacts.add(pt.Person_2__c);
+                alreadyProcessed.add(pt.Person_2__c);
             }
         }
         return secondaryContacts;

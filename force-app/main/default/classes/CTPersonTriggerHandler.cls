@@ -23,7 +23,7 @@ public with sharing class CTPersonTriggerHandler {
         Set<Id> statusChange = new Set<Id>();
         Set<Id> redStatus = new Set<Id>();
         for (Person__c person_record: newRecords){
-
+            
             if(oldRecordMaps.get(person_record.Id).Health_Status__c != person_record.Health_Status__c){
                 statusChange.add(person_record.Id);
             }
@@ -32,19 +32,48 @@ public with sharing class CTPersonTriggerHandler {
             }
             
         }
+        
+        Set<Id> alreadyProcessed = new Set<Id>();
+        alreadyProcessed.addAll(redStatus);
+        
         Set<Id> orangeStatus = new Set<Id>();
         Set<Id> yellowStatus = new Set<Id>();
-
+        
+        List<Person__c> personToUpdate = new List<Person__c>();
+        
         // Lets add cohabitants
-        orangeStatus.addAll(CTPersonContoller.getCohibitants(redStatus));
-
-        //lets add neighbours
-        yellowStatus.addAll(CTPersonContoller.getNeigbhours(redStatus));
-
+        orangeStatus.addAll(CTPersonContoller.getCohibitants(redStatus,alreadyProcessed));
+        
         // Lets add primary contacts
-        Set<Id> primaryContacts = CTPersonContoller.getPrimaryContacts(redStatus);
-
+        Set<Id> primaryContacts = CTPersonContoller.getPrimaryContacts(redStatus,alreadyProcessed);
+        orangeStatus.addAll(primaryContacts);
+        
+        
+        //lets add neighbours
+        yellowStatus.addAll(CTPersonContoller.getNeigbhours(redStatus,alreadyProcessed));
+        
+        
         //lets add Secondary contacts
-        yellowStatus.addAll(CTPersonContoller.getSecondaryContacts(primaryContacts));
+        yellowStatus.addAll(CTPersonContoller.getSecondaryContacts(primaryContacts,alreadyProcessed));
+        
+        for(Id pid: orangeStatus){
+            personToUpdate.add(new Person__c(Id = pid, Health_Status__c = 'Orange'));
+        }
+        
+        for(Id pid: yellowStatus){
+            personToUpdate.add(new Person__c(Id = pid, Health_Status__c = 'Yellow'));
+        }
+        
+        if(personToUpdate.size()>0){
+            update personToUpdate;
+        }
+        
+        List<Location_Tracing__c> locationTraces = CTLocationTracingController.getLocationsByPersonIds(statusChange);
+        if(locationTraces != null && locationTraces.size()>0){
+            Set<Id> locationIds = new Set<Id>();
+            for(Location_Tracing__c trace: locationTraces){
+                locationIds.add(trace.Location__c);
+            }
+        }
     }
 }
