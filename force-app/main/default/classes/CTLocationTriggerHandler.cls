@@ -49,4 +49,4 @@ public with sharing class CTLocationTriggerHandler {
                 }
             }
         }
-}} 
+}}
